@@ -2,8 +2,8 @@
    FreshKart Application Logic
    ========================================================================== */
 
-// 1. Mock Database of Premium Products
-const products = [
+// 1. Mock Database of Premium Products (Default Fallback)
+const defaultProducts = [
   {
     id: 1,
     title: "Organic Red Strawberries",
@@ -173,6 +173,24 @@ const products = [
     nutrition: { calories: "105 kcal/banana", carbs: "27g", protein: "1.3g", fat: "0.3g" }
   }
 ];
+
+let products = [];
+try {
+  const savedProducts = localStorage.getItem('fk-products');
+  if (savedProducts) {
+    products = JSON.parse(savedProducts);
+  } else {
+    products = defaultProducts;
+    localStorage.setItem('fk-products', JSON.stringify(defaultProducts));
+  }
+  if (!Array.isArray(products) || products.length === 0) {
+    products = defaultProducts;
+    localStorage.setItem('fk-products', JSON.stringify(defaultProducts));
+  }
+} catch (e) {
+  console.warn("localStorage 'fk-products' read error, using defaultProducts fallback.", e);
+  products = defaultProducts;
+}
 
 // 2. State Variables
 let cart = [];
@@ -964,7 +982,50 @@ function setCreditInputsRequired(isRequired) {
 document.getElementById('checkout-panel-2').addEventListener('submit', (e) => {
   e.preventDefault();
   
-  // Complete Order
+  // Create and save new order in database (localStorage)
+  const orderId = 'FK-' + Math.floor(100000 + Math.random() * 900000);
+  const shipName = document.getElementById('ship-name').value;
+  const shipPhone = document.getElementById('ship-phone').value;
+  const shipEmail = document.getElementById('ship-email').value;
+  const shipAddress = document.getElementById('ship-address').value;
+  const shipCity = document.getElementById('ship-city').value;
+  const shipZip = document.getElementById('ship-zip').value;
+  
+  const subtotal = cart.reduce((sum, item) => sum + (item.product.price * item.quantity), 0);
+  let discount = 0;
+  if (activePromoCode === 'FRESH10') discount = subtotal * 0.10;
+  const delivery = subtotal >= 399 ? 0 : 49.00;
+  const tax = subtotal * 0.08;
+  const finalTotal = subtotal - discount + delivery + tax;
+
+  const newOrder = {
+    id: orderId,
+    customer: {
+      name: shipName,
+      phone: shipPhone,
+      email: shipEmail,
+      address: `${shipAddress}, ${shipCity} - ${shipZip}`
+    },
+    items: cart.map(item => ({
+      id: item.product.id,
+      title: item.product.title,
+      quantity: item.quantity,
+      price: item.product.price
+    })),
+    total: finalTotal,
+    status: 'Pending',
+    date: new Date().toLocaleString()
+  };
+
+  try {
+    const existingOrders = JSON.parse(localStorage.getItem('fk-orders')) || [];
+    existingOrders.push(newOrder);
+    localStorage.setItem('fk-orders', JSON.stringify(existingOrders));
+  } catch (err) {
+    console.warn("Failed to save order to localStorage", err);
+  }
+
+  // Complete Order UI
   checkoutStep = 3;
   updateCheckoutStepUI();
   
@@ -974,7 +1035,7 @@ document.getElementById('checkout-panel-2').addEventListener('submit', (e) => {
   updateCartBadges();
   renderCartItems();
   
-  startDeliveryTracker();
+  startDeliveryTracker(orderId);
 });
 
 // Back from payment button
@@ -989,8 +1050,8 @@ checkoutCloseBtn.addEventListener('click', () => {
   clearDeliveryTimer();
 });
 
-// Simulated delivery status scheduler
-function startDeliveryTracker() {
+// Real-time delivery status listener polling localStorage
+function startDeliveryTracker(orderId) {
   clearDeliveryTimer();
   
   const step1 = document.getElementById('tracker-step-1');
@@ -998,36 +1059,48 @@ function startDeliveryTracker() {
   const step3 = document.getElementById('tracker-step-3');
   const step4 = document.getElementById('tracker-step-4');
 
-  // Reset steps
-  step1.className = 'tracker-step completed';
-  step2.className = 'tracker-step active';
-  step3.className = 'tracker-step';
-  step4.className = 'tracker-step';
+  function updateTrackerUI(status) {
+    step1.className = 'tracker-step completed';
+    step2.className = 'tracker-step';
+    step3.className = 'tracker-step';
+    step4.className = 'tracker-step';
 
-  // Step 2 completes in 6 seconds
-  deliveryStatusTimer = setTimeout(() => {
-    step2.className = 'tracker-step completed';
-    step3.className = 'tracker-step active';
-    showToast("Your organic order is packed and dispatched!", "success");
-
-    // Step 3 completes in 12 seconds
-    deliveryStatusTimer = setTimeout(() => {
+    if (status === 'Pending') {
+      step2.className = 'tracker-step active';
+    } else if (status === 'Packing') {
+      step2.className = 'tracker-step completed';
+      step3.className = 'tracker-step active';
+    } else if (status === 'Dispatched') {
+      step2.className = 'tracker-step completed';
       step3.className = 'tracker-step completed';
       step4.className = 'tracker-step active';
-      showToast("Delivery driver is approaching your address", "warning");
+    } else if (status === 'Arrived') {
+      step2.className = 'tracker-step completed';
+      step3.className = 'tracker-step completed';
+      step4.className = 'tracker-step completed';
+    }
+  }
 
-      // Arrived in 18 seconds
-      deliveryStatusTimer = setTimeout(() => {
-        step4.className = 'tracker-step completed';
-        showToast("Your FreshKart package has arrived at your door!", "success");
-      }, 6000);
-    }, 6000);
-  }, 6000);
+  // Set initial Pending state
+  updateTrackerUI('Pending');
+
+  // Poll localStorage every 2 seconds for status updates from Admin Panel
+  deliveryStatusTimer = setInterval(() => {
+    try {
+      const orders = JSON.parse(localStorage.getItem('fk-orders')) || [];
+      const currentOrder = orders.find(o => o.id === orderId);
+      if (currentOrder) {
+        updateTrackerUI(currentOrder.status);
+      }
+    } catch (e) {
+      console.warn("Failed to read order status during polling", e);
+    }
+  }, 2000);
 }
 
 function clearDeliveryTimer() {
   if (deliveryStatusTimer) {
-    clearTimeout(deliveryStatusTimer);
+    clearInterval(deliveryStatusTimer);
     deliveryStatusTimer = null;
   }
 }
