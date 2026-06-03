@@ -175,12 +175,37 @@ const products = [
 ];
 
 // 2. State Variables
-let cart = JSON.parse(localStorage.getItem('fk-cart')) || [];
-let wishlist = JSON.parse(localStorage.getItem('fk-wishlist')) || [];
+let cart = [];
+let wishlist = [];
 let selectedCategory = 'all';
 let searchQuery = '';
-let activePromoCode = localStorage.getItem('fk-promo') || null;
+let activePromoCode = null;
 let deliveryStatusTimer = null;
+
+try {
+  const savedCart = localStorage.getItem('fk-cart');
+  cart = savedCart ? JSON.parse(savedCart) : [];
+  if (!Array.isArray(cart)) cart = [];
+} catch (e) {
+  console.warn("localStorage 'fk-cart' read error, defaulting to empty.", e);
+  cart = [];
+}
+
+try {
+  const savedWishlist = localStorage.getItem('fk-wishlist');
+  wishlist = savedWishlist ? JSON.parse(savedWishlist) : [];
+  if (!Array.isArray(wishlist)) wishlist = [];
+} catch (e) {
+  console.warn("localStorage 'fk-wishlist' read error, defaulting to empty.", e);
+  wishlist = [];
+}
+
+try {
+  activePromoCode = localStorage.getItem('fk-promo') || null;
+} catch (e) {
+  console.warn("localStorage 'fk-promo' read error, defaulting to null.", e);
+  activePromoCode = null;
+}
 
 // Categories configuration
 const categories = [
@@ -261,7 +286,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
 // Theme Toggle logic
 function initTheme() {
-  const storedTheme = localStorage.getItem('fk-theme') || 'light';
+  let storedTheme = 'light';
+  try {
+    storedTheme = localStorage.getItem('fk-theme') || 'light';
+  } catch (e) {
+    console.warn("localStorage 'fk-theme' read error.", e);
+  }
   document.documentElement.setAttribute('data-theme', storedTheme);
   updateThemeIcon(storedTheme);
 }
@@ -276,7 +306,11 @@ themeToggle.addEventListener('click', () => {
   const currentTheme = document.documentElement.getAttribute('data-theme');
   const nextTheme = currentTheme === 'dark' ? 'light' : 'dark';
   document.documentElement.setAttribute('data-theme', nextTheme);
-  localStorage.setItem('fk-theme', nextTheme);
+  try {
+    localStorage.setItem('fk-theme', nextTheme);
+  } catch (e) {
+    console.warn("localStorage 'fk-theme' write error.", e);
+  }
   updateThemeIcon(nextTheme);
   showToast(`Switched to ${nextTheme} mode`, 'success');
 });
@@ -514,11 +548,19 @@ function toggleWishlist(productId, heartButton) {
 }
 
 function saveCart() {
-  localStorage.setItem('fk-cart', JSON.stringify(cart));
+  try {
+    localStorage.setItem('fk-cart', JSON.stringify(cart));
+  } catch (e) {
+    console.warn("localStorage 'fk-cart' write error.", e);
+  }
 }
 
 function saveWishlist() {
-  localStorage.setItem('fk-wishlist', JSON.stringify(wishlist));
+  try {
+    localStorage.setItem('fk-wishlist', JSON.stringify(wishlist));
+  } catch (e) {
+    console.warn("localStorage 'fk-wishlist' write error.", e);
+  }
 }
 
 function updateCartBadges() {
@@ -732,7 +774,11 @@ promoApply.addEventListener('click', () => {
   const code = promoInput.value.trim().toUpperCase();
   if (code === 'FRESH10') {
     activePromoCode = 'FRESH10';
-    localStorage.setItem('fk-promo', 'FRESH10');
+    try {
+      localStorage.setItem('fk-promo', 'FRESH10');
+    } catch (e) {
+      console.warn("localStorage 'fk-promo' write error.", e);
+    }
     showToast('Promo code applied successfully (10% Off)!', 'success');
     calculateCartTotals();
   } else {
