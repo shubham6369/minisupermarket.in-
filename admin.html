@@ -88,6 +88,14 @@
           <svg class="nav-icon"><use href="#icon-shopping-bag"></use></svg>
           Customer Orders
         </button>
+        <button class="nav-item" data-view="coupons">
+          <svg class="nav-icon" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24" style="width: 20px; height: 20px;"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"></path><line x1="7" y1="7" x2="7.01" y2="7"></line></svg>
+          Promo Coupons
+        </button>
+        <button class="nav-item" data-view="customers">
+          <svg class="nav-icon" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24" style="width: 20px; height: 20px;"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
+          Customers Directory
+        </button>
       </nav>
 
       <div class="sidebar-footer">
@@ -206,6 +214,17 @@
               </div>
             </div>
           </div>
+
+          <!-- Visual Category Revenue Analytics -->
+          <div class="dashboard-widget" style="margin-top: 2rem;">
+            <div class="widget-header">
+              <h3 class="widget-title">Category Revenue Performance</h3>
+              <span style="font-size: 0.8rem; font-weight: 700; color: var(--primary); text-transform: uppercase; letter-spacing: 0.05em;">Real-time Sales Share</span>
+            </div>
+            <div class="category-sales-bars" id="category-sales-bars">
+              <!-- Render progress bars dynamically -->
+            </div>
+          </div>
         </section>
 
         <!-- SECTION 2: Products Manager -->
@@ -266,6 +285,56 @@
                   </tr>
                 </thead>
                 <tbody id="orders-table-body">
+                  <!-- Generated dynamically -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </section>
+
+        <!-- SECTION 4: Promo Coupons Manager -->
+        <section class="panel-section" id="section-coupons">
+          <div class="actions-bar">
+            <button class="btn btn-primary" id="add-coupon-btn">
+              <svg style="width: 18px; height: 18px;"><use href="#icon-plus"></use></svg>
+              Create Promo Coupon
+            </button>
+          </div>
+
+          <div class="table-card">
+            <div class="table-container">
+              <table class="data-table">
+                <thead>
+                  <tr>
+                    <th>Coupon Code</th>
+                    <th>Discount (%)</th>
+                    <th>Status</th>
+                    <th>Actions</th>
+                  </tr>
+                </thead>
+                <tbody id="coupons-table-body">
+                  <!-- Generated dynamically -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </section>
+
+        <!-- SECTION 5: Customers Directory -->
+        <section class="panel-section" id="section-customers">
+          <div class="table-card">
+            <div class="table-container">
+              <table class="data-table">
+                <thead>
+                  <tr>
+                    <th>Customer Name</th>
+                    <th>Email Address</th>
+                    <th>Last Order Date</th>
+                    <th>Orders Count</th>
+                    <th>Total Spend</th>
+                  </tr>
+                </thead>
+                <tbody id="customers-table-body">
                   <!-- Generated dynamically -->
                 </tbody>
               </table>
@@ -342,6 +411,48 @@
         <div class="form-actions">
           <button type="button" class="btn btn-secondary" id="form-cancel-btn">Cancel</button>
           <button type="submit" class="btn btn-primary" id="form-save-btn">Save Product</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Coupon Dialog Modal -->
+  <div class="modal-backdrop" id="coupon-modal-backdrop">
+    <div class="modal" id="coupon-modal">
+      <button class="modal-close" id="coupon-modal-close">
+        <svg style="width: 18px; height: 18px;"><use href="#icon-close"></use></svg>
+      </button>
+      
+      <div class="modal-header">
+        <h2 id="coupon-modal-title">Create Promo Coupon</h2>
+        <p id="coupon-modal-desc">Define a new active discount coupon for the store checkout</p>
+      </div>
+
+      <form id="coupon-form" class="modal-form">
+        <input type="hidden" id="form-coupon-id">
+        <div class="form-grid">
+          <div class="form-group">
+            <label class="form-label" for="coupon-code">Coupon Code</label>
+            <input type="text" class="form-input" id="coupon-code" placeholder="e.g. SUPER50" required>
+          </div>
+          
+          <div class="form-group">
+            <label class="form-label" for="coupon-discount">Discount Percentage (%)</label>
+            <input type="number" class="form-input" id="coupon-discount" min="1" max="100" placeholder="e.g. 15" required>
+          </div>
+          
+          <div class="form-group full">
+            <label class="form-label" for="coupon-status">Status</label>
+            <select class="form-input" id="coupon-status" required>
+              <option value="Active">Active</option>
+              <option value="Inactive">Inactive</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="form-actions">
+          <button type="button" class="btn btn-secondary" id="coupon-cancel-btn">Cancel</button>
+          <button type="submit" class="btn btn-primary">Save Coupon</button>
         </div>
       </form>
     </div>

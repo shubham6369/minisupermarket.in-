@@ -840,3 +840,41 @@ body {
   0% { opacity: 0; transform: translateY(12px); }
   100% { opacity: 1; transform: translateY(0); }
 }
+
+/* Category sales bars styles */
+.category-sales-bars {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+  padding: 0.5rem 0;
+}
+
+.sales-bar-row {
+  display: flex;
+  flex-direction: column;
+}
+
+.sales-bar-bg {
+  width: 100%;
+  height: 10px;
+  background: var(--bg-tertiary);
+  border-radius: var(--radius-full);
+  overflow: hidden;
+  position: relative;
+  box-shadow: inset 0 1px 3px rgba(0,0,0,0.2);
+}
+
+.sales-bar-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--primary), #2ecc71);
+  border-radius: var(--radius-full);
+  box-shadow: 0 0 12px var(--primary);
+  transition: width 1.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Modal layout configuration */
+#coupon-modal-backdrop {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}

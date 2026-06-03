@@ -228,6 +228,19 @@ function saveOrders() {
   }
 }
 
+// Product Categories configuration matching app.js
+const categories = [
+  { id: 'all', name: 'All Products', icon: 'all' },
+  { id: 'fruits-veggies', name: 'Fruits & Veggies', icon: 'fruits' },
+  { id: 'dairy-eggs', name: 'Dairy & Eggs', icon: 'dairy' },
+  { id: 'bakery', name: 'Bakery', icon: 'bakery' },
+  { id: 'beverages', name: 'Beverages', icon: 'beverages' },
+  { id: 'snacks', name: 'Snacks & Honey', icon: 'snacks' }
+];
+
+// Coupons State List
+let coupons = [];
+
 // 2. DOM Selection Elements
 const navItems = document.querySelectorAll('.nav-item');
 const sections = document.querySelectorAll('.panel-section');
@@ -275,11 +288,21 @@ const formDescInput = document.getElementById('form-desc');
 // Toasts Container
 const toastContainer = document.getElementById('toast-container');
 
+// Coupons Dialog Modal bindings
+const couponModalBackdrop = document.getElementById('coupon-modal-backdrop');
+const couponModal = document.getElementById('coupon-modal');
+const couponModalClose = document.getElementById('coupon-modal-close');
+const couponForm = document.getElementById('coupon-form');
+const couponCancelBtn = document.getElementById('coupon-cancel-btn');
+const addCouponBtn = document.getElementById('add-coupon-btn');
+const couponsTableBody = document.getElementById('coupons-table-body');
+
 // ==========================================================================
 // Initialization & Navigation Toggles
 // ==========================================================================
 document.addEventListener('DOMContentLoaded', () => {
   loadData();
+  loadCoupons();
   initTheme();
   setupNavToggles();
   renderDashboard();
@@ -316,6 +339,14 @@ function setupNavToggles() {
         viewTitle.innerText = "Customer Orders";
         viewSubtitle.innerText = "Deliveries & Actions";
         renderOrdersTable();
+      } else if (view === 'coupons') {
+        viewTitle.innerText = "Promo Coupons";
+        viewSubtitle.innerText = "Discount Management";
+        renderCouponsTable();
+      } else if (view === 'customers') {
+        viewTitle.innerText = "Customers Directory";
+        viewSubtitle.innerText = "Buyer Accounts & Activity";
+        renderCustomersDirectory();
       }
     });
   });
@@ -418,6 +449,9 @@ function renderDashboard() {
       `;
     }).join('');
   }
+
+  // 6. Render Category Performance Bars
+  renderCategorySalesPerformance();
 }
 
 // ==========================================================================
@@ -453,6 +487,9 @@ function renderProductsTable() {
         <td>⭐ ${p.rating} <span style="color: var(--text-tertiary); font-size: 0.8rem;">(${p.reviews})</span></td>
         <td>
           <div class="table-actions">
+            <button class="btn-icon edit" onclick="quickRestockProduct(${p.id})" style="background-color: rgba(46, 204, 113, 0.15); color: #2ecc71;" aria-label="Quick Restock +50">
+              <svg style="width: 16px; height: 16px; fill: none; stroke: currentColor; stroke-width: 2.5; stroke-linecap: round; stroke-linejoin: round;" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+            </button>
             <button class="btn-icon edit" onclick="openEditModal(${p.id})" aria-label="Edit Product">
               <svg style="width: 16px; height: 16px; fill: currentColor;"><path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34c-.39-.39-1.02-.39-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/></svg>
             </button>
@@ -479,10 +516,31 @@ function setupFormBindings() {
   productModalClose.addEventListener('click', closeProductModal);
   formCancelBtn.addEventListener('click', closeProductModal);
 
-  backdrop.addEventListener('click', closeProductModal);
   modalBackdrop.addEventListener('click', (e) => {
     if (e.target === modalBackdrop) closeProductModal();
   });
+
+  // Coupon Modals triggers
+  if (addCouponBtn) {
+    addCouponBtn.addEventListener('click', openAddCouponModal);
+  }
+  if (couponModalClose) {
+    couponModalClose.addEventListener('click', closeCouponModal);
+  }
+  if (couponCancelBtn) {
+    couponCancelBtn.addEventListener('click', closeCouponModal);
+  }
+  if (couponModalBackdrop) {
+    couponModalBackdrop.addEventListener('click', (e) => {
+      if (e.target === couponModalBackdrop) closeCouponModal();
+    });
+  }
+  if (couponForm) {
+    couponForm.addEventListener('submit', (e) => {
+      e.preventDefault();
+      saveCouponForm();
+    });
+  }
 
   // Submit Modal Save
   productForm.addEventListener('submit', (e) => {
@@ -693,3 +751,261 @@ function showToast(message, type = 'success') {
     });
   }, 3000);
 }
+
+// ==========================================================================
+// RESTOCK & CATEGORY PERFORMANCE & CUSTOMERS & COUPONS LOGIC
+// ==========================================================================
+
+window.quickRestockProduct = function(productId) {
+  const prod = products.find(p => p.id === productId);
+  if (prod) {
+    prod.stock = (prod.stock || 0) + 50;
+    saveProducts();
+    renderProductsTable();
+    showToast(`Restocked 50 units of "${prod.title}" (New Stock: ${prod.stock})`, 'success');
+  }
+};
+
+function renderCategorySalesPerformance() {
+  loadData();
+  const salesByCategory = {};
+  categories.forEach(c => {
+    if (c.id !== 'all') salesByCategory[c.id] = 0;
+  });
+
+  let totalSales = 0;
+  orders.forEach(order => {
+    order.items.forEach(item => {
+      const prod = products.find(p => p.id === item.id);
+      const categoryId = prod ? prod.category : 'fruits-veggies'; // default fallback
+      if (salesByCategory[categoryId] !== undefined) {
+        const itemRevenue = item.price * item.quantity;
+        salesByCategory[categoryId] += itemRevenue;
+        totalSales += itemRevenue;
+      }
+    });
+  });
+
+  const chartContainer = document.getElementById('category-sales-bars');
+  if (!chartContainer) return;
+
+  if (totalSales === 0) {
+    chartContainer.innerHTML = `<div style="text-align: center; color: var(--text-tertiary); padding: 1.5rem 0;">No sales data available. Category share will populate as checkouts occur.</div>`;
+    return;
+  }
+
+  const sortedCategories = Object.keys(salesByCategory).map(key => {
+    const catConfig = categories.find(c => c.id === key) || { name: key };
+    const revenue = salesByCategory[key];
+    const percent = totalSales > 0 ? (revenue / totalSales) * 100 : 0;
+    return { id: key, name: catConfig.name, revenue, percent };
+  }).sort((a, b) => b.revenue - a.revenue);
+
+  chartContainer.innerHTML = sortedCategories.map(cat => {
+    return `
+      <div class="sales-bar-row" style="margin-bottom: 1.25rem;">
+        <div class="sales-bar-info" style="display: flex; justify-content: space-between; font-size: 0.85rem; font-weight: 600; margin-bottom: 0.35rem;">
+          <span style="color: var(--text-primary); text-transform: capitalize;">${cat.name}</span>
+          <span style="color: var(--text-secondary);">₹${cat.revenue.toFixed(2)} (${cat.percent.toFixed(0)}%)</span>
+        </div>
+        <div class="sales-bar-bg" style="width: 100%; height: 8px; background: var(--bg-tertiary); border-radius: var(--radius-full); overflow: hidden;">
+          <div class="sales-bar-fill" style="width: ${cat.percent}%; height: 100%; background: var(--primary); border-radius: var(--radius-full); transition: width 0.8s ease;"></div>
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
+function renderCustomersDirectory() {
+  loadData();
+  const tbody = document.getElementById('customers-table-body');
+  if (!tbody) return;
+
+  const customersMap = {};
+
+  orders.forEach(o => {
+    const email = o.customer.email ? o.customer.email.toLowerCase() : 'unknown@example.com';
+    const name = o.customer.name || 'Guest User';
+    const totalSpend = o.total;
+    const date = o.date;
+
+    if (!customersMap[email]) {
+      customersMap[email] = {
+        name: name,
+        email: email,
+        lastOrderDate: date,
+        ordersCount: 1,
+        totalSpend: totalSpend
+      };
+    } else {
+      customersMap[email].ordersCount += 1;
+      customersMap[email].totalSpend += totalSpend;
+      customersMap[email].lastOrderDate = date;
+    }
+  });
+
+  try {
+    const savedUser = localStorage.getItem('ms-user');
+    if (savedUser) {
+      const user = JSON.parse(savedUser);
+      if (user && user.email) {
+        const email = user.email.toLowerCase();
+        if (!customersMap[email]) {
+          customersMap[email] = {
+            name: user.name,
+            email: email,
+            lastOrderDate: 'Never (Registered)',
+            ordersCount: 0,
+            totalSpend: 0
+          };
+        }
+      }
+    }
+  } catch (e) {
+    console.warn(e);
+  }
+
+  const customersList = Object.values(customersMap);
+
+  if (customersList.length === 0) {
+    tbody.innerHTML = `<tr><td colspan="5" style="text-align: center; color: var(--text-tertiary);">No customer records found.</td></tr>`;
+    return;
+  }
+
+  customersList.sort((a, b) => b.totalSpend - a.totalSpend);
+
+  tbody.innerHTML = customersList.map(c => {
+    return `
+      <tr>
+        <td style="font-weight: 700; color: var(--text-primary);">${c.name}</td>
+        <td>${c.email}</td>
+        <td>${c.lastOrderDate}</td>
+        <td style="font-weight: 600;">${c.ordersCount} orders</td>
+        <td style="font-weight: 800; color: var(--primary);">₹${c.totalSpend.toFixed(2)}</td>
+      </tr>
+    `;
+  }).join('');
+}
+
+function loadCoupons() {
+  try {
+    const savedCoupons = localStorage.getItem('ms-coupons');
+    if (savedCoupons) {
+      coupons = JSON.parse(savedCoupons);
+    } else {
+      coupons = [
+        { id: 1, code: 'MINI10', discount: 10, status: 'Active' },
+        { id: 2, code: 'SUPER20', discount: 20, status: 'Active' }
+      ];
+      localStorage.setItem('ms-coupons', JSON.stringify(coupons));
+    }
+  } catch (e) {
+    console.warn("Storage error reading coupons", e);
+    coupons = [];
+  }
+}
+
+function saveCoupons() {
+  try {
+    localStorage.setItem('ms-coupons', JSON.stringify(coupons));
+  } catch (e) {
+    console.warn("Storage write error for coupons", e);
+  }
+}
+
+function renderCouponsTable() {
+  loadCoupons();
+  const tbody = document.getElementById('coupons-table-body');
+  if (!tbody) return;
+
+  if (coupons.length === 0) {
+    tbody.innerHTML = `<tr><td colspan="4" style="text-align: center; color: var(--text-tertiary);">No promo coupons created yet.</td></tr>`;
+    return;
+  }
+
+  tbody.innerHTML = coupons.map(c => {
+    const statusClass = c.status === 'Active' ? 'badge arrived' : 'badge stock-empty';
+    return `
+      <tr>
+        <td style="font-weight: 700; color: var(--text-primary);">${c.code}</td>
+        <td style="font-weight: 800; color: var(--primary);">${c.discount}% Off</td>
+        <td><span class="${statusClass}">${c.status}</span></td>
+        <td>
+          <div class="table-actions">
+            <button class="btn-icon edit" onclick="openEditCouponModal(${c.id})" aria-label="Edit Coupon">
+              <svg style="width: 16px; height: 16px; fill: currentColor;"><path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34c-.39-.39-1.02-.39-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/></svg>
+            </button>
+            <button class="btn-icon delete" onclick="deleteCoupon(${c.id})" aria-label="Delete Coupon">
+              <svg style="width: 16px; height: 16px; fill: currentColor;"><path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/></svg>
+            </button>
+          </div>
+        </td>
+      </tr>
+    `;
+  }).join('');
+}
+
+function openAddCouponModal() {
+  couponForm.reset();
+  document.getElementById('form-coupon-id').value = "";
+  document.getElementById('coupon-modal-title').innerText = "Create Promo Coupon";
+  document.getElementById('coupon-modal-desc').innerText = "Define a new active discount coupon for the store checkout";
+  couponModalBackdrop.classList.add('active');
+}
+
+window.openEditCouponModal = function(couponId) {
+  const c = coupons.find(coup => coup.id === couponId);
+  if (!c) return;
+
+  document.getElementById('form-coupon-id').value = c.id;
+  document.getElementById('coupon-code').value = c.code;
+  document.getElementById('coupon-discount').value = c.discount;
+  document.getElementById('coupon-status').value = c.status;
+
+  document.getElementById('coupon-modal-title').innerText = "Edit Promo Coupon";
+  document.getElementById('coupon-modal-desc').innerText = `Update settings for coupon code "${c.code}"`;
+  couponModalBackdrop.classList.add('active');
+};
+
+function closeCouponModal() {
+  couponModalBackdrop.classList.remove('active');
+}
+
+function saveCouponForm() {
+  const idVal = document.getElementById('form-coupon-id').value;
+  const code = document.getElementById('coupon-code').value.trim().toUpperCase();
+  const discount = parseInt(document.getElementById('coupon-discount').value);
+  const status = document.getElementById('coupon-status').value;
+
+  if (idVal) {
+    const cId = parseInt(idVal);
+    const index = coupons.findIndex(c => c.id === cId);
+    if (index > -1) {
+      coupons[index] = { ...coupons[index], code, discount, status };
+      saveCoupons();
+      showToast(`Updated coupon code ${code} successfully`, 'success');
+    }
+  } else {
+    const newId = coupons.length > 0 ? Math.max(...coupons.map(c => c.id)) + 1 : 1;
+    const newCoupon = { id: newId, code, discount, status };
+    coupons.push(newCoupon);
+    saveCoupons();
+    showToast(`Created new promo coupon code ${code} (${discount}% Off)`, 'success');
+  }
+
+  closeCouponModal();
+  renderCouponsTable();
+}
+
+window.deleteCoupon = function(couponId) {
+  const c = coupons.find(coup => coup.id === couponId);
+  if (!c) return;
+
+  if (confirm(`Are you sure you want to permanently delete coupon "${c.code}"?`)) {
+    coupons = coupons.filter(coup => coup.id !== couponId);
+    saveCoupons();
+    renderCouponsTable();
+    showToast(`Removed coupon code "${c.code}"`, 'danger');
+  }
+};
+

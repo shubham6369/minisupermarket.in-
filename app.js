@@ -401,11 +401,22 @@ function renderProducts() {
   productsGrid.innerHTML = filtered.map(p => {
     const hasDiscount = p.oldPrice !== null;
     const isFav = wishlist.includes(p.id) ? 'active' : '';
-    const badgeHTML = p.badge ? `<span class="card-badge ${p.badge.toLowerCase().includes('organic') ? 'organic' : ''}">${p.badge}</span>` : '';
+    const isOutOfStock = p.stock !== undefined && p.stock === 0;
+
+    let badgeHTML = '';
+    if (isOutOfStock) {
+      badgeHTML = `<span class="card-badge" style="background: var(--danger); color: #fff;">Sold Out</span>`;
+    } else if (p.badge) {
+      badgeHTML = `<span class="card-badge ${p.badge.toLowerCase().includes('organic') ? 'organic' : ''}">${p.badge}</span>`;
+    }
+
     const oldPriceHTML = hasDiscount ? `<span class="price-old">₹${p.oldPrice.toFixed(2)}</span>` : '';
+    const addBtnHTML = isOutOfStock
+      ? `<button class="add-cart-btn out-of-stock-btn" disabled style="background: var(--text-tertiary); color: #fff; cursor: not-allowed; box-shadow: none;">Sold Out</button>`
+      : `<button class="add-cart-btn" data-id="${p.id}"><svg><use href="#icon-plus"></use></svg>Add</button>`;
 
     return `
-      <article class="product-card reveal" data-product-id="${p.id}">
+      <article class="product-card reveal ${isOutOfStock ? 'card-out-of-stock' : ''}" data-product-id="${p.id}">
         ${badgeHTML}
         <button class="favorite-btn ${isFav}" data-id="${p.id}" aria-label="Add to Wishlist">
           <svg style="width: 18px; height: 18px;"><use href="#icon-heart"></use></svg>
@@ -431,10 +442,7 @@ function renderProducts() {
             <span class="price-current">₹${p.price.toFixed(2)}</span>
             ${oldPriceHTML}
           </div>
-          <button class="add-cart-btn" data-id="${p.id}">
-            <svg><use href="#icon-plus"></use></svg>
-            Add
-          </button>
+          ${addBtnHTML}
         </div>
       </article>
     `;
@@ -450,6 +458,7 @@ function setupProductCardEvents() {
   // Add to Cart Buttons
   document.querySelectorAll('.add-cart-btn').forEach(btn => {
     btn.addEventListener('click', (e) => {
+      if (btn.hasAttribute('disabled')) return;
       e.stopPropagation();
       const pId = parseInt(btn.getAttribute('data-id'));
       const product = products.find(p => p.id === pId);
@@ -539,16 +548,39 @@ function triggerFlyAnimation(imageElement, triggerButton) {
 // ==========================================================================
 function addToCart(product, quantity = 1) {
   const existing = cart.find(item => item.product.id === product.id);
-  if (existing) {
-    existing.quantity += quantity;
+  const currentQty = existing ? existing.quantity : 0;
+  const targetQty = currentQty + quantity;
+
+  let freshProducts = products;
+  try {
+    const saved = localStorage.getItem('ms-products');
+    if (saved) freshProducts = JSON.parse(saved);
+  } catch (e) {
+    console.warn(e);
+  }
+
+  const freshProduct = freshProducts.find(p => p.id === product.id) || product;
+  const maxStock = freshProduct.stock !== undefined ? freshProduct.stock : 999;
+
+  if (targetQty > maxStock) {
+    showToast(`Sorry, only ${maxStock} units of ${product.title} are in stock.`, 'warning');
+    if (existing) {
+      existing.quantity = maxStock;
+    } else if (maxStock > 0) {
+      cart.push({ product, quantity: maxStock });
+    }
   } else {
-    cart.push({ product, quantity });
+    if (existing) {
+      existing.quantity += quantity;
+    } else {
+      cart.push({ product, quantity });
+    }
+    showToast(`Added ${product.title} to cart`, 'success');
   }
 
   saveCart();
   updateCartBadges();
   renderCartItems();
-  showToast(`Added ${product.title} to cart`, 'success');
 }
 
 function toggleWishlist(productId, heartButton) {
@@ -662,7 +694,24 @@ window.adjustCartQty = function(productId, delta) {
   const item = cart.find(i => i.product.id === productId);
   if (!item) return;
 
-  item.quantity += delta;
+  let freshProducts = products;
+  try {
+    const saved = localStorage.getItem('ms-products');
+    if (saved) freshProducts = JSON.parse(saved);
+  } catch (e) {
+    console.warn(e);
+  }
+
+  const freshProduct = freshProducts.find(p => p.id === productId);
+  const maxStock = freshProduct && freshProduct.stock !== undefined ? freshProduct.stock : 999;
+
+  if (delta > 0 && item.quantity + delta > maxStock) {
+    showToast(`Sorry, only ${maxStock} units of ${item.product.title} are in stock.`, 'warning');
+    item.quantity = maxStock;
+  } else {
+    item.quantity += delta;
+  }
+
   if (item.quantity <= 0) {
     removeCartItem(productId);
     return;
@@ -684,14 +733,30 @@ window.removeCartItem = function(productId) {
   showToast(`Removed ${item.product.title} from cart`, 'warning');
 };
 
+// Fetch active promo codes
+function getPromoDiscountPercent(code) {
+  if (!code) return 0;
+  try {
+    const savedCoupons = JSON.parse(localStorage.getItem('ms-coupons')) || [];
+    const coupon = savedCoupons.find(c => c.code.toUpperCase() === code.toUpperCase() && c.status === 'Active');
+    return coupon ? coupon.discount / 100 : 0;
+  } catch (e) {
+    console.warn("localStorage coupons read error", e);
+  }
+  // Fallback default
+  if (code === 'MINI10') return 0.10;
+  return 0;
+}
+
 // Calculate pricing details
 function calculateCartTotals() {
   const subtotal = cart.reduce((sum, item) => sum + (item.product.price * item.quantity), 0);
   
   // Promo code
+  const discountPercent = getPromoDiscountPercent(activePromoCode);
   let discount = 0;
-  if (activePromoCode === 'MINI10') {
-    discount = subtotal * 0.10;
+  if (discountPercent > 0) {
+    discount = subtotal * discountPercent;
     summaryDiscountRow.style.display = 'flex';
     summaryDiscount.innerText = `-₹${discount.toFixed(2)}`;
   } else {
@@ -792,20 +857,38 @@ window.removeWishlistItem = function(productId) {
   showToast(`Removed ${product.title} from favorites`, 'warning');
 };
 
-// Apply promo code MINI10
+// Apply promo code dynamically
 promoApply.addEventListener('click', () => {
   const code = promoInput.value.trim().toUpperCase();
-  if (code === 'MINI10') {
-    activePromoCode = 'MINI10';
+  let couponsList = [];
+  try {
+    const saved = localStorage.getItem('ms-coupons');
+    if (saved) {
+      couponsList = JSON.parse(saved);
+    } else {
+      couponsList = [
+        { code: 'MINI10', discount: 10, status: 'Active' },
+        { code: 'SUPER20', discount: 20, status: 'Active' }
+      ];
+      localStorage.setItem('ms-coupons', JSON.stringify(couponsList));
+    }
+  } catch (e) {
+    console.warn(e);
+    couponsList = [{ code: 'MINI10', discount: 10, status: 'Active' }];
+  }
+
+  const match = couponsList.find(c => c.code.toUpperCase() === code && c.status === 'Active');
+  if (match) {
+    activePromoCode = match.code;
     try {
-      localStorage.setItem('ms-promo', 'MINI10');
+      localStorage.setItem('ms-promo', match.code);
     } catch (e) {
       console.warn("localStorage 'ms-promo' write error.", e);
     }
-    showToast('Promo code applied successfully (10% Off)!', 'success');
+    showToast(`Promo code ${match.code} applied (${match.discount}% Off)!`, 'success');
     calculateCartTotals();
   } else {
-    showToast('Invalid promo code. Try MINI10', 'danger');
+    showToast('Invalid or inactive promo code.', 'danger');
   }
 });
 
@@ -998,8 +1081,8 @@ document.getElementById('checkout-panel-2').addEventListener('submit', (e) => {
   const shipZip = document.getElementById('ship-zip').value;
   
   const subtotal = cart.reduce((sum, item) => sum + (item.product.price * item.quantity), 0);
-  let discount = 0;
-  if (activePromoCode === 'MINI10') discount = subtotal * 0.10;
+  const discountPercent = getPromoDiscountPercent(activePromoCode);
+  const discount = subtotal * discountPercent;
   const delivery = subtotal >= 399 ? 0 : 49.00;
   const tax = subtotal * 0.08;
   const finalTotal = subtotal - discount + delivery + tax;
@@ -1031,6 +1114,22 @@ document.getElementById('checkout-panel-2').addEventListener('submit', (e) => {
     console.warn("Failed to save order to localStorage", err);
   }
 
+  // Decrement product stocks based on cart contents
+  try {
+    const savedProds = JSON.parse(localStorage.getItem('ms-products')) || [];
+    cart.forEach(cartItem => {
+      const dbProd = savedProds.find(p => p.id === cartItem.product.id);
+      if (dbProd) {
+        dbProd.stock = Math.max(0, dbProd.stock - cartItem.quantity);
+      }
+    });
+    localStorage.setItem('ms-products', JSON.stringify(savedProds));
+    // Update local products reference
+    products = savedProds;
+  } catch (err) {
+    console.warn("Failed to decrement stock on checkout", err);
+  }
+
   // Complete Order UI
   checkoutStep = 3;
   updateCheckoutStepUI();
@@ -1040,6 +1139,7 @@ document.getElementById('checkout-panel-2').addEventListener('submit', (e) => {
   saveCart();
   updateCartBadges();
   renderCartItems();
+  renderProducts(); // Refresh storefront grid to update stock status
   
   startDeliveryTracker(orderId);
 });
