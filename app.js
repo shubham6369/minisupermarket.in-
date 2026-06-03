@@ -300,6 +300,11 @@ document.addEventListener('DOMContentLoaded', () => {
   updateWishlistBadges();
   setupEventListeners();
   setupScrollReveal();
+
+  // Google Auth Init
+  initGoogleAuth();
+  renderUserAuthUI();
+  setupUserMenuEvents();
 });
 
 // Theme Toggle logic
@@ -919,6 +924,7 @@ checkoutStartBtn.addEventListener('click', () => {
 function openCheckout() {
   checkoutStep = 1;
   updateCheckoutStepUI();
+  renderUserAuthUI(); // Prefill user profile details on checkout open
   modalBackdrop.classList.add('active');
   checkoutModal.style.display = 'block';
   detailsModal.style.display = 'none';
@@ -1258,5 +1264,142 @@ function setupScrollReveal() {
   } else {
     // Fallback if IntersectionObserver is not supported
     elements.forEach(el => el.classList.add('revealed'));
+  }
+}
+
+// ==========================================================================
+// Google Authentication & User Profile Manager
+// ==========================================================================
+
+function initGoogleAuth() {
+  if (typeof google === 'undefined' || !google.accounts || !google.accounts.id) {
+    setTimeout(initGoogleAuth, 500);
+    return;
+  }
+
+  google.accounts.id.initialize({
+    client_id: '1035252329388-7mcr680o8a9c3p792q3e92ld9j586616.apps.googleusercontent.com', // Google Workspace Web Client ID
+    callback: handleGoogleLoginCallback,
+    auto_select: false,
+    cancel_on_tap_outside: true
+  });
+
+  google.accounts.id.renderButton(
+    document.getElementById('google-login-btn'),
+    { 
+      type: 'standard',
+      theme: document.documentElement.getAttribute('data-theme') === 'dark' ? 'filled_black' : 'outline',
+      size: 'medium',
+      text: 'signin_with',
+      shape: 'pill',
+      logo_alignment: 'left'
+    }
+  );
+}
+
+function decodeGoogleIdToken(token) {
+  try {
+    const base64Url = token.split('.')[1];
+    const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+    const jsonPayload = decodeURIComponent(window.atob(base64).split('').map(function(c) {
+      return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
+    }).join(''));
+    return JSON.parse(jsonPayload);
+  } catch (error) {
+    console.error("JWT decoding failed:", error);
+    return null;
+  }
+}
+
+function handleGoogleLoginCallback(response) {
+  const payload = decodeGoogleIdToken(response.credential);
+  if (payload) {
+    const userData = {
+      name: payload.name,
+      email: payload.email,
+      picture: payload.picture,
+      googleId: payload.sub
+    };
+
+    try {
+      localStorage.setItem('ms-user', JSON.stringify(userData));
+    } catch (e) {
+      console.warn("localStorage 'ms-user' write error", e);
+    }
+
+    showToast(`Welcome back, ${userData.name}!`, 'success');
+    renderUserAuthUI();
+  } else {
+    showToast('Google Sign-In failed. Please try again.', 'danger');
+  }
+}
+
+function renderUserAuthUI() {
+  let user = null;
+  try {
+    const savedUser = localStorage.getItem('ms-user');
+    user = savedUser ? JSON.parse(savedUser) : null;
+  } catch (e) {
+    console.warn("localStorage 'ms-user' read error", e);
+  }
+
+  const loginWrap = document.getElementById('google-login-wrap');
+  const profileMenu = document.getElementById('user-profile-menu');
+  const userAvatar = document.getElementById('user-avatar');
+  const userNameDisplay = document.getElementById('user-name-display');
+  const userEmailDisplay = document.getElementById('user-email-display');
+
+  if (user && user.email) {
+    if (loginWrap) loginWrap.style.display = 'none';
+    if (profileMenu) profileMenu.style.display = 'block';
+    if (userAvatar) userAvatar.src = user.picture || 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&q=80&w=150';
+    if (userNameDisplay) userNameDisplay.innerText = user.name;
+    if (userEmailDisplay) userEmailDisplay.innerText = user.email;
+
+    const shipNameInput = document.getElementById('ship-name');
+    const shipEmailInput = document.getElementById('ship-email');
+    if (shipNameInput && !shipNameInput.value) shipNameInput.value = user.name;
+    if (shipEmailInput && !shipEmailInput.value) shipEmailInput.value = user.email;
+  } else {
+    if (loginWrap) loginWrap.style.display = 'block';
+    if (profileMenu) profileMenu.style.display = 'none';
+  }
+}
+
+function setupUserMenuEvents() {
+  const profileToggle = document.getElementById('profile-dropdown-toggle');
+  const profileDropdown = document.getElementById('profile-dropdown');
+  const logoutBtn = document.getElementById('logout-btn');
+
+  if (profileToggle && profileDropdown) {
+    profileToggle.addEventListener('click', (e) => {
+      e.stopPropagation();
+      profileDropdown.classList.toggle('active');
+    });
+
+    document.addEventListener('click', () => {
+      profileDropdown.classList.remove('active');
+    });
+
+    profileDropdown.addEventListener('click', (e) => {
+      e.stopPropagation();
+    });
+  }
+
+  if (logoutBtn) {
+    logoutBtn.addEventListener('click', () => {
+      try {
+        localStorage.removeItem('ms-user');
+      } catch (e) {
+        console.warn("localStorage removeItem error", e);
+      }
+      showToast('Signed out of Google account successfully.', 'warning');
+      renderUserAuthUI();
+      
+      const shipNameInput = document.getElementById('ship-name');
+      const shipEmailInput = document.getElementById('ship-email');
+      if (shipNameInput) shipNameInput.value = '';
+      if (shipEmailInput) shipEmailInput.value = '';
+    });
   }
 }
