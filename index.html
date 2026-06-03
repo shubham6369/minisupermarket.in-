@@ -1,0 +1,457 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>FreshKart - Organic & Fresh Groceries Delivered Instantly</title>
+  <meta name="description" content="Shop premium organic fruits, vegetables, dairy, bakery, and beverages. Experience smooth animations, instant cart actions, and real-time order tracking.">
+  <link rel="stylesheet" href="index.css">
+</head>
+<body>
+
+  <!-- Inline SVG Symbols Library for high performance and styling -->
+  <svg style="display: none;">
+    <symbol id="icon-leaf" viewBox="0 0 24 24">
+      <path d="M12 2C6.48 2 2 6.48 2 12c0 2.22.73 4.25 1.95 5.92L12 22l8.05-4.08C21.27 16.25 22 14.22 22 12c0-5.52-4.48-10-10-10zm0 18c-4.41 0-8-3.59-8-8 0-.32.03-.64.08-.95C6.01 12.23 8 15 8 15s3.5-3 5.5-3c1.5 0 2.5 1 2.5 2.5 0 2-2 3.5-4 3.5v2zm4.18-5.32c-.52-.39-1.28-.68-2.18-.68-1.5 0-3 1.5-4.5 1.5s-2.5-.5-3-1c.95-1.92 2.76-3.5 5.5-3.5 2.5 0 4.5 1.5 5 3.5-.27.06-.54.12-.82.18z"/>
+    </symbol>
+    <symbol id="icon-search" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <circle cx="11" cy="11" r="8"></circle>
+      <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+    </symbol>
+    <symbol id="icon-cart" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <circle cx="9" cy="21" r="1"></circle>
+      <circle cx="20" cy="21" r="1"></circle>
+      <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path>
+    </symbol>
+    <symbol id="icon-heart" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
+    </symbol>
+    <symbol id="icon-star" viewBox="0 0 24 24">
+      <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
+    </symbol>
+    <symbol id="icon-close" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <line x1="18" y1="6" x2="6" y2="18"></line>
+      <line x1="6" y1="6" x2="18" y2="18"></line>
+    </symbol>
+    <symbol id="icon-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <circle cx="12" cy="12" r="5"></circle>
+      <line x1="12" y1="1" x2="12" y2="3"></line>
+      <line x1="12" y1="21" x2="12" y2="23"></line>
+      <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+      <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+      <line x1="1" y1="12" x2="3" y2="12"></line>
+      <line x1="21" y1="12" x2="23" y2="12"></line>
+      <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+      <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+    </symbol>
+    <symbol id="icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+    </symbol>
+    <symbol id="icon-plus" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <line x1="12" y1="5" x2="12" y2="19"></line>
+      <line x1="5" y1="12" x2="19" y2="12"></line>
+    </symbol>
+    <symbol id="icon-minus" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <line x1="5" y1="12" x2="19" y2="12"></line>
+    </symbol>
+    <symbol id="icon-truck" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <rect x="1" y="3" width="15" height="13"></rect>
+      <polygon points="16 8 20 8 23 11 23 16 16 16 16 8"></polygon>
+      <circle cx="5.5" cy="18.5" r="2.5"></circle>
+      <circle cx="18.5" cy="18.5" r="2.5"></circle>
+    </symbol>
+    <symbol id="icon-arrow-left" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <line x1="19" y1="12" x2="5" y2="12"></line>
+      <polyline points="12 19 5 12 12 5"></polyline>
+    </symbol>
+    <symbol id="icon-check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+      <polyline points="20 6 9 17 4 12"></polyline>
+    </symbol>
+    <symbol id="icon-user" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+      <circle cx="12" cy="7" r="4"></circle>
+    </symbol>
+    <symbol id="icon-credit-card" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <rect x="1" y="4" width="22" height="16" rx="2" ry="2"></rect>
+      <line x1="1" y1="10" x2="23" y2="10"></line>
+    </symbol>
+  </svg>
+
+  <!-- Header -->
+  <header class="header">
+    <div class="header-container">
+      <!-- Logo -->
+      <a href="#" class="logo" id="logo-refresh">
+        <svg><use href="#icon-leaf"></use></svg>
+        Fresh<span>Kart</span>
+      </a>
+
+      <!-- Navigation Menu -->
+      <nav class="nav-menu">
+        <a href="#" class="nav-link active" data-nav="all">Shop</a>
+        <a href="#about" class="nav-link" data-nav="about">About</a>
+        <a href="#footer" class="nav-link" data-nav="contact">Contact</a>
+      </nav>
+
+      <!-- Header actions -->
+      <div class="header-actions">
+        <!-- Theme Toggle -->
+        <button class="icon-btn" id="theme-toggle" aria-label="Toggle dark/light theme">
+          <svg class="theme-sun" style="width: 20px; height: 20px;"><use href="#icon-sun"></use></svg>
+        </button>
+
+        <!-- Wishlist -->
+        <button class="icon-btn" id="wishlist-toggle-btn" aria-label="Open wishlist drawer">
+          <svg style="width: 20px; height: 20px;"><use href="#icon-heart"></use></svg>
+          <span class="icon-badge" id="wishlist-count-badge">0</span>
+        </button>
+
+        <!-- Shopping Cart -->
+        <button class="icon-btn" id="cart-toggle-btn" aria-label="Open cart drawer">
+          <svg style="width: 20px; height: 20px;"><use href="#icon-cart"></use></svg>
+          <span class="icon-badge" id="cart-count-badge">0</span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Hero Section -->
+  <section class="hero reveal">
+    <div class="hero-content">
+      <div class="hero-tag">
+        <svg style="width: 16px; height: 16px; fill: currentColor; margin-right: 0.25rem;"><use href="#icon-leaf"></use></svg>
+        100% Organic & Fresh
+      </div>
+      <h1 class="hero-title">Delicious Groceries, <br>Delivered to <span>Your Home</span></h1>
+      <p class="hero-desc">Experience farm-fresh organic produce, artisanal bakery goods, farm eggs, and handpicked beverages. Ordering groceries has never been this satisfying or smooth.</p>
+      
+      <!-- Search bar -->
+      <div class="search-wrapper">
+        <svg class="search-icon"><use href="#icon-search"></use></svg>
+        <input type="text" class="search-input" id="search-bar" placeholder="Search fresh fruits, dairy, organic honey...">
+        <button class="search-btn" id="search-btn">
+          Search
+        </button>
+      </div>
+    </div>
+  </section>
+
+  <!-- Categories Section -->
+  <section class="categories-section reveal">
+    <div class="section-header">
+      <div class="section-title-wrap">
+        <span class="section-subtitle">Categories</span>
+        <h2 class="section-title">Explore Our Shop</h2>
+      </div>
+    </div>
+    
+    <!-- Filters pills -->
+    <div class="category-pills" id="category-filters-container">
+      <!-- JavaScript will populate categories here -->
+    </div>
+  </section>
+
+  <!-- Products Section -->
+  <section class="products-section reveal">
+    <div class="products-grid" id="products-grid-container">
+      <!-- JavaScript will populate products dynamically here -->
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer class="footer" id="footer">
+    <div class="footer-container">
+      <div class="footer-about">
+        <a href="#" class="logo">
+          <svg><use href="#icon-leaf"></use></svg>
+          Fresh<span>Kart</span>
+        </a>
+        <p>Providing the highest quality, locally-sourced organic foods straight from the farms. We value sustainability, freshness, and exceptional speed.</p>
+        <div class="social-links">
+          <a href="#" class="social-link" aria-label="Facebook"><svg style="width: 18px; height: 18px; fill: currentColor;"><use href="#icon-leaf"></use></svg></a>
+          <a href="#" class="social-link" aria-label="Twitter"><svg style="width: 18px; height: 18px; fill: currentColor;"><use href="#icon-leaf"></use></svg></a>
+          <a href="#" class="social-link" aria-label="Instagram"><svg style="width: 18px; height: 18px; fill: currentColor;"><use href="#icon-leaf"></use></svg></a>
+        </div>
+      </div>
+      <div class="footer-column">
+        <h3 class="footer-title">Quick Links</h3>
+        <ul class="footer-links">
+          <li><a href="#">About Us</a></li>
+          <li><a href="#">Fresh Farms</a></li>
+          <li><a href="#">Careers</a></li>
+          <li><a href="#">Blog Articles</a></li>
+        </ul>
+      </div>
+      <div class="footer-column">
+        <h3 class="footer-title">Customer Care</h3>
+        <ul class="footer-links">
+          <li><a href="#">Help & FAQs</a></li>
+          <li><a href="#">Shipping Details</a></li>
+          <li><a href="#">Refund Policy</a></li>
+          <li><a href="#">Privacy Settings</a></li>
+        </ul>
+      </div>
+      <div class="footer-column">
+        <h3 class="footer-title">Contact Us</h3>
+        <ul class="footer-links">
+          <li>Email: hello@freshkart.com</li>
+          <li>Phone: +1 (800) 555-FRES</li>
+          <li>Location: 42 Farmview Blvd, organic valley, CA</li>
+        </ul>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <p>&copy; 2026 FreshKart Inc. All rights reserved.</p>
+      <p>Made with &hearts; for premium organic living.</p>
+    </div>
+  </footer>
+
+  <!-- Drawer Backdrop (shared) -->
+  <div class="drawer-backdrop" id="drawer-backdrop"></div>
+
+  <!-- Cart Drawer -->
+  <aside class="drawer" id="cart-drawer">
+    <div class="drawer-header">
+      <h3 class="drawer-title">
+        <svg style="width: 22px; height: 22px;"><use href="#icon-cart"></use></svg>
+        Your Cart (<span id="cart-drawer-count">0</span>)
+      </h3>
+      <button class="drawer-close" id="cart-drawer-close" aria-label="Close cart drawer">
+        <svg style="width: 18px; height: 18px;"><use href="#icon-close"></use></svg>
+      </button>
+    </div>
+    
+    <div class="drawer-content" id="cart-drawer-content">
+      <!-- Dynamic cart items will load here -->
+    </div>
+    
+    <div class="drawer-footer" id="cart-drawer-footer">
+      <div class="promo-wrap">
+        <input type="text" class="promo-input" id="promo-code-input" placeholder="Promo code (FRESH10)">
+        <button class="promo-btn" id="promo-code-apply">Apply</button>
+      </div>
+      <div class="price-summary">
+        <div class="price-row">
+          <span>Subtotal</span>
+          <span id="summary-subtotal">₹0.00</span>
+        </div>
+        <div class="price-row discount" id="summary-discount-row" style="display: none;">
+          <span>Discount (10%)</span>
+          <span id="summary-discount">-₹0.00</span>
+        </div>
+        <div class="price-row">
+          <span>Delivery Fee</span>
+          <span id="summary-delivery">₹0.00</span>
+        </div>
+        <div class="price-row">
+          <span>Estimated Tax</span>
+          <span id="summary-tax">₹0.00</span>
+        </div>
+        <div class="price-row total">
+          <span>Total</span>
+          <span id="summary-total">₹0.00</span>
+        </div>
+      </div>
+      <button class="checkout-btn" id="checkout-start-btn">
+        <svg><use href="#icon-check"></use></svg>
+        Checkout Now
+      </button>
+    </div>
+  </aside>
+
+  <!-- Wishlist Drawer -->
+  <aside class="drawer" id="wishlist-drawer">
+    <div class="drawer-header">
+      <h3 class="drawer-title">
+        <svg style="width: 22px; height: 22px; fill: var(--danger);"><use href="#icon-heart"></use></svg>
+        Wishlist (<span id="wishlist-drawer-count">0</span>)
+      </h3>
+      <button class="drawer-close" id="wishlist-drawer-close" aria-label="Close wishlist drawer">
+        <svg style="width: 18px; height: 18px;"><use href="#icon-close"></use></svg>
+      </button>
+    </div>
+    
+    <div class="drawer-content" id="wishlist-drawer-content">
+      <!-- Dynamic wishlist items will load here -->
+    </div>
+  </aside>
+
+  <!-- Modal Backdrop (shared for Product Details and Checkout) -->
+  <div class="modal-backdrop" id="modal-backdrop">
+    <!-- Product Detail Modal -->
+    <div class="modal" id="details-modal" style="display: none;">
+      <button class="modal-close" id="details-modal-close" aria-label="Close modal">
+        <svg style="width: 18px; height: 18px;"><use href="#icon-close"></use></svg>
+      </button>
+      <div class="detail-modal-layout" id="details-modal-content">
+        <!-- Rendered dynamically -->
+      </div>
+    </div>
+
+    <!-- Checkout Modal -->
+    <div class="modal checkout-modal" id="checkout-modal" style="display: none;">
+      <button class="modal-close" id="checkout-modal-close" aria-label="Close checkout">
+        <svg style="width: 18px; height: 18px;"><use href="#icon-close"></use></svg>
+      </button>
+      
+      <div class="checkout-header">
+        <h2 class="form-title" style="font-size: 1.5rem; margin-bottom: 0.5rem;">Secure Checkout</h2>
+        <p style="color: var(--text-secondary); font-size: 0.85rem;">Complete your transaction in 3 easy steps</p>
+        
+        <div class="checkout-steps">
+          <div class="steps-progress" id="checkout-progress-bar"></div>
+          <div class="step-node active" id="step-node-1" data-step="1">
+            <svg style="width: 14px; height: 14px;"><use href="#icon-user"></use></svg>
+          </div>
+          <div class="step-node" id="step-node-2" data-step="2">
+            <svg style="width: 14px; height: 14px;"><use href="#icon-credit-card"></use></svg>
+          </div>
+          <div class="step-node" id="step-node-3" data-step="3">
+            <svg style="width: 14px; height: 14px;"><use href="#icon-truck"></use></svg>
+          </div>
+        </div>
+      </div>
+
+      <div class="checkout-content">
+        <!-- Step 1: Shipping Details -->
+        <form class="checkout-step-panel active" id="checkout-panel-1">
+          <h3 class="form-title">Shipping & Contact Info</h3>
+          <div class="form-grid">
+            <div class="form-group">
+              <label class="form-label" for="ship-name">Full Name</label>
+              <input type="text" class="form-input" id="ship-name" placeholder="John Doe" required>
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="ship-phone">Phone Number</label>
+              <input type="tel" class="form-input" id="ship-phone" placeholder="(555) 123-4567" required>
+            </div>
+            <div class="form-group full">
+              <label class="form-label" for="ship-email">Email Address</label>
+              <input type="email" class="form-input" id="ship-email" placeholder="john@example.com" required>
+            </div>
+            <div class="form-group full">
+              <label class="form-label" for="ship-address">Street Address</label>
+              <input type="text" class="form-input" id="ship-address" placeholder="123 Orchard Ave" required>
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="ship-city">City</label>
+              <input type="text" class="form-input" id="ship-city" placeholder="San Francisco" required>
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="ship-zip">ZIP / Postal Code</label>
+              <input type="text" class="form-input" id="ship-zip" placeholder="94105" required>
+            </div>
+          </div>
+          
+          <div class="checkout-actions">
+            <div></div> <!-- Spacer -->
+            <button type="submit" class="next-btn">
+              Next Step
+              <svg style="width: 16px; height: 16px; fill: none; stroke: currentColor; stroke-width: 2.5;"><use href="#icon-plus"></use></svg>
+            </button>
+          </div>
+        </form>
+
+        <!-- Step 2: Payment Details -->
+        <form class="checkout-step-panel" id="checkout-panel-2">
+          <h3 class="form-title">Payment Method</h3>
+          <div class="payment-options">
+            <div class="payment-card active" data-payment="credit">
+              <div class="radio-circle"></div>
+              <svg style="width: 28px; height: 28px; color: var(--primary);"><use href="#icon-credit-card"></use></svg>
+              <div class="payment-info">
+                <span class="payment-name">Credit or Debit Card</span>
+                <span class="payment-desc">Visa, Mastercard, American Express</span>
+              </div>
+            </div>
+            <div class="payment-card" data-payment="delivery">
+              <div class="radio-circle"></div>
+              <svg style="width: 28px; height: 28px; color: var(--secondary);"><use href="#icon-truck"></use></svg>
+              <div class="payment-info">
+                <span class="payment-name">Cash on Delivery (COD)</span>
+                <span class="payment-desc">Pay with cash when your food arrives</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="form-grid" id="credit-card-inputs">
+            <div class="form-group full">
+              <label class="form-label" for="card-num">Card Number</label>
+              <input type="text" class="form-input" id="card-num" placeholder="4111 2222 3333 4444" pattern="\d{16}" title="16 digit card number">
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="card-expiry">Expiry Date</label>
+              <input type="text" class="form-input" id="card-expiry" placeholder="MM/YY" pattern="\d\d/\d\d" title="Expiry formatted as MM/YY">
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="card-cvc">CVC</label>
+              <input type="text" class="form-input" id="card-cvc" placeholder="123" pattern="\d{3}" title="3 digit security code">
+            </div>
+          </div>
+
+          <div class="checkout-actions">
+            <button type="button" class="back-btn" id="payment-back-btn">
+              <svg style="width: 16px; height: 16px;"><use href="#icon-arrow-left"></use></svg>
+              Back
+            </button>
+            <button type="submit" class="next-btn">
+              Place Order (₹<span id="checkout-final-total">0.00</span>)
+            </button>
+          </div>
+        </form>
+
+        <!-- Step 3: Success & Tracking -->
+        <div class="checkout-step-panel success-panel" id="checkout-panel-3">
+          <div class="success-icon-wrap">
+            <svg><use href="#icon-check"></use></svg>
+          </div>
+          <h3 class="success-title">Order Confirmed!</h3>
+          <p class="success-desc">Thank you for shopping with FreshKart. Your organic food is on its way!</p>
+          
+          <h4 class="tracker-title">Live Delivery Status</h4>
+          <div class="delivery-tracker">
+            <div class="tracker-step completed" id="tracker-step-1">
+              <div class="tracker-dot"><svg><use href="#icon-check"></use></svg></div>
+              <div class="tracker-info">
+                <span class="tracker-name">Order Placed</span>
+                <span class="tracker-time" id="tracker-time-1">Just now</span>
+              </div>
+            </div>
+            <div class="tracker-step" id="tracker-step-2">
+              <div class="tracker-dot"><svg><use href="#icon-leaf"></use></svg></div>
+              <div class="tracker-info">
+                <span class="tracker-name">Packing Organic Items</span>
+                <span class="tracker-time" id="tracker-time-2">Estimated 5 mins</span>
+              </div>
+            </div>
+            <div class="tracker-step" id="tracker-step-3">
+              <div class="tracker-dot"><svg><use href="#icon-truck"></use></svg></div>
+              <div class="tracker-info">
+                <span class="tracker-name">Out for Delivery</span>
+                <span class="tracker-time" id="tracker-time-3">Estimated 15 mins</span>
+              </div>
+            </div>
+            <div class="tracker-step" id="tracker-step-4">
+              <div class="tracker-dot"><svg><use href="#icon-check"></use></svg></div>
+              <div class="tracker-info">
+                <span class="tracker-name">Arrived at your door</span>
+                <span class="tracker-time" id="tracker-time-4">Estimated 25 mins</span>
+              </div>
+            </div>
+          </div>
+
+          <button class="browse-btn" id="checkout-close-btn" style="width: 100%; max-width: 250px;">
+            Continue Shopping
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast Floating Container -->
+  <div class="toast-container" id="toast-container"></div>
+
+  <!-- JavaScript logic -->
+  <script src="app.js"></script>
+</body>
+</html>

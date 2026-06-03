@@ -1,0 +1,14 @@
+{
+  "name": "freshkart-grocery",
+  "version": "1.0.0",
+  "description": "Premium organic grocery web application with rich keyframe transitions and parabolic fly-in animations.",
+  "main": "index.html",
+  "scripts": {
+    "dev": "vite --port 3000 --host",
+    "build": "vite build",
+    "preview": "vite preview"
+  },
+  "devDependencies": {
+    "vite": "^5.2.0"
+  }
+}
