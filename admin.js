@@ -177,6 +177,23 @@ const defaultProducts = [
 // 1. Data Store Arrays (Safe try/catch)
 let products = [];
 let orders = [];
+let settings = {
+  freeShippingMin: 399,
+  deliveryFee: 49,
+  taxRate: 8,
+  bannerActive: true,
+  bannerText: "⚡ Welcome to minisupermarket.in! Use coupon MINI10 for 10% off your purchase.",
+  bannerBgColor: "#10b981",
+  bannerTextColor: "#ffffff"
+};
+
+function saveSettings() {
+  try {
+    localStorage.setItem('ms-settings', JSON.stringify(settings));
+  } catch (e) {
+    console.warn("Storage write error for settings", e);
+  }
+}
 
 function loadData() {
   // Load Products
@@ -208,6 +225,18 @@ function loadData() {
   } catch (e) {
     console.warn("Storage error reading orders", e);
     orders = [];
+  }
+
+  // Load Store Settings
+  try {
+    const savedSettings = localStorage.getItem('ms-settings');
+    if (savedSettings) {
+      settings = { ...settings, ...JSON.parse(savedSettings) };
+    } else {
+      localStorage.setItem('ms-settings', JSON.stringify(settings));
+    }
+  } catch (e) {
+    console.warn("Storage error reading settings", e);
   }
 }
 
@@ -284,6 +313,20 @@ const formWeightInput = document.getElementById('form-weight');
 const formStockInput = document.getElementById('form-stock');
 const formImageInput = document.getElementById('form-image');
 const formDescInput = document.getElementById('form-desc');
+const formBadgeInput = document.getElementById('form-badge');
+
+// Settings elements
+const settingsForm = document.getElementById('settings-form');
+const settingsFreeShippingMin = document.getElementById('settings-free-shipping-min');
+const settingsDeliveryFee = document.getElementById('settings-delivery-fee');
+const settingsTaxRate = document.getElementById('settings-tax-rate');
+const settingsBannerActive = document.getElementById('settings-banner-active');
+const settingsBannerFields = document.getElementById('settings-banner-fields');
+const settingsBannerText = document.getElementById('settings-banner-text');
+const settingsBannerBgColor = document.getElementById('settings-banner-bg-color');
+const settingsBannerBgText = document.getElementById('settings-banner-bg-text');
+const settingsBannerTextColor = document.getElementById('settings-banner-text-color');
+const settingsBannerTextText = document.getElementById('settings-banner-text-text');
 
 // Toasts Container
 const toastContainer = document.getElementById('toast-container');
@@ -310,6 +353,7 @@ document.addEventListener('DOMContentLoaded', () => {
   renderOrdersTable();
   setupFormBindings();
   setupDashboardQuickLinks();
+  setupSettingsBindings();
 });
 
 // Sidebar Navigation handles tab toggles
@@ -347,6 +391,10 @@ function setupNavToggles() {
         viewTitle.innerText = "Customers Directory";
         viewSubtitle.innerText = "Buyer Accounts & Activity";
         renderCustomersDirectory();
+      } else if (view === 'settings') {
+        viewTitle.innerText = "Store Configuration";
+        viewSubtitle.innerText = "Global Settings & Policies";
+        populateSettingsForm();
       }
     });
   });
@@ -479,7 +527,10 @@ function renderProductsTable() {
     return `
       <tr>
         <td><img src="${p.image}" alt="${p.title}" class="table-img"></td>
-        <td style="font-weight: 700; color: var(--text-primary);">${p.title}</td>
+        <td style="font-weight: 700; color: var(--text-primary);">
+          ${p.title}
+          ${p.badge ? `<span class="badge" style="background: var(--primary-light); color: var(--primary); font-size: 0.7rem; margin-left: 0.4rem; padding: 0.15rem 0.4rem; border-radius: var(--radius-sm); border: 1px solid var(--primary); font-weight: 700; display: inline-block;">${p.badge}</span>` : ''}
+        </td>
         <td style="text-transform: capitalize;">${p.category.replace("-", " & ")}</td>
         <td style="font-weight: 800; color: var(--primary);">₹${p.price.toFixed(2)}</td>
         <td>${p.weight}</td>
@@ -552,6 +603,7 @@ function setupFormBindings() {
 function openAddModal() {
   productForm.reset();
   formIdInput.value = "";
+  if (formBadgeInput) formBadgeInput.value = "";
   modalFormTitle.innerText = "Add New Product";
   modalFormDesc.innerText = "Create a new product listing in your catalog database";
   modalBackdrop.classList.add('active');
@@ -569,6 +621,7 @@ window.openEditModal = function(productId) {
   formOldPriceInput.value = p.oldPrice || "";
   formWeightInput.value = p.weight;
   formStockInput.value = p.stock || 0;
+  if (formBadgeInput) formBadgeInput.value = p.badge || "";
   formImageInput.value = p.image;
   formDescInput.value = p.description;
 
@@ -591,6 +644,7 @@ function saveProductForm() {
   const oldPrice = oldPriceVal ? parseFloat(oldPriceVal) : null;
   const weight = formWeightInput.value.trim();
   const stock = parseInt(formStockInput.value);
+  const badge = formBadgeInput ? formBadgeInput.value.trim() : "";
   const image = formImageInput.value.trim();
   const description = formDescInput.value.trim();
 
@@ -607,6 +661,7 @@ function saveProductForm() {
         oldPrice,
         weight,
         stock,
+        badge: badge || null,
         image,
         description
       };
@@ -625,7 +680,7 @@ function saveProductForm() {
       weight,
       rating: 5.0, // Default for new products
       reviews: 0,
-      badge: "New",
+      badge: badge || null,
       stock,
       image,
       description,
@@ -1008,4 +1063,81 @@ window.deleteCoupon = function(couponId) {
     showToast(`Removed coupon code "${c.code}"`, 'danger');
   }
 };
+
+// ==========================================================================
+// Store Settings Operations
+// ==========================================================================
+function populateSettingsForm() {
+  if (!settingsFreeShippingMin) return;
+  settingsFreeShippingMin.value = settings.freeShippingMin;
+  settingsDeliveryFee.value = settings.deliveryFee;
+  settingsTaxRate.value = settings.taxRate;
+  
+  settingsBannerActive.checked = settings.bannerActive;
+  settingsBannerText.value = settings.bannerText || "";
+  
+  settingsBannerBgColor.value = settings.bannerBgColor || "#10b981";
+  settingsBannerBgText.value = settings.bannerBgColor || "#10b981";
+  
+  settingsBannerTextColor.value = settings.bannerTextColor || "#ffffff";
+  settingsBannerTextText.value = settings.bannerTextColor || "#ffffff";
+  
+  toggleBannerFields(settings.bannerActive);
+}
+
+function toggleBannerFields(isActive) {
+  if (!settingsBannerFields) return;
+  if (isActive) {
+    settingsBannerFields.style.opacity = '1';
+    settingsBannerFields.style.pointerEvents = 'auto';
+  } else {
+    settingsBannerFields.style.opacity = '0.5';
+    settingsBannerFields.style.pointerEvents = 'none';
+  }
+}
+
+function setupSettingsBindings() {
+  if (!settingsForm) return;
+
+  settingsBannerActive.addEventListener('change', (e) => {
+    toggleBannerFields(e.target.checked);
+  });
+
+  // Sync color pickers with hex inputs
+  settingsBannerBgColor.addEventListener('input', (e) => {
+    settingsBannerBgText.value = e.target.value;
+  });
+  settingsBannerBgText.addEventListener('input', (e) => {
+    const val = e.target.value;
+    if (/^#[0-9A-F]{6}$/i.test(val)) {
+      settingsBannerBgColor.value = val;
+    }
+  });
+
+  settingsBannerTextColor.addEventListener('input', (e) => {
+    settingsBannerTextText.value = e.target.value;
+  });
+  settingsBannerTextText.addEventListener('input', (e) => {
+    const val = e.target.value;
+    if (/^#[0-9A-F]{6}$/i.test(val)) {
+      settingsBannerTextColor.value = val;
+    }
+  });
+
+  // Save changes
+  settingsForm.addEventListener('submit', (e) => {
+    e.preventDefault();
+    settings.freeShippingMin = parseFloat(settingsFreeShippingMin.value) || 0;
+    settings.deliveryFee = parseFloat(settingsDeliveryFee.value) || 0;
+    settings.taxRate = parseFloat(settingsTaxRate.value) || 0;
+    
+    settings.bannerActive = settingsBannerActive.checked;
+    settings.bannerText = settingsBannerText.value;
+    settings.bannerBgColor = settingsBannerBgText.value || "#10b981";
+    settings.bannerTextColor = settingsBannerTextText.value || "#ffffff";
+    
+    saveSettings();
+    showToast("Store settings saved successfully!", "success");
+  });
+}
 

@@ -193,6 +193,27 @@ try {
 }
 
 // 2. State Variables
+let settings = {
+  freeShippingMin: 399,
+  deliveryFee: 49,
+  taxRate: 8,
+  bannerActive: true,
+  bannerText: "⚡ Welcome to minisupermarket.in! Use coupon MINI10 for 10% off your purchase.",
+  bannerBgColor: "#10b981",
+  bannerTextColor: "#ffffff"
+};
+
+try {
+  const savedSettings = localStorage.getItem('ms-settings');
+  if (savedSettings) {
+    settings = { ...settings, ...JSON.parse(savedSettings) };
+  } else {
+    localStorage.setItem('ms-settings', JSON.stringify(settings));
+  }
+} catch (e) {
+  console.warn("localStorage 'ms-settings' read error, using fallback.", e);
+}
+
 let cart = [];
 let wishlist = [];
 let selectedCategory = 'all';
@@ -300,6 +321,7 @@ document.addEventListener('DOMContentLoaded', () => {
   updateWishlistBadges();
   setupEventListeners();
   setupScrollReveal();
+  renderAnnouncementBanner();
 
   // Google Auth Init
   initGoogleAuth();
@@ -763,11 +785,16 @@ function calculateCartTotals() {
     summaryDiscountRow.style.display = 'none';
   }
 
-  // Delivery: Free over ₹399, else ₹49.00
-  const delivery = subtotal >= 399 ? 0 : 49.00;
+  // Delivery parameters from settings
+  const freeShippingThreshold = settings.freeShippingMin !== undefined ? settings.freeShippingMin : 399;
+  const deliveryFee = settings.deliveryFee !== undefined ? settings.deliveryFee : 49.00;
+  const taxRate = settings.taxRate !== undefined ? settings.taxRate / 100 : 0.08;
+
+  // Delivery calculation
+  const delivery = subtotal >= freeShippingThreshold ? 0 : deliveryFee;
   
-  // Tax 8% (GST)
-  const tax = subtotal * 0.08;
+  // Tax calculation
+  const tax = subtotal * taxRate;
 
   // Final Total
   const finalTotal = subtotal - discount + delivery + tax;
@@ -1083,8 +1110,11 @@ document.getElementById('checkout-panel-2').addEventListener('submit', (e) => {
   const subtotal = cart.reduce((sum, item) => sum + (item.product.price * item.quantity), 0);
   const discountPercent = getPromoDiscountPercent(activePromoCode);
   const discount = subtotal * discountPercent;
-  const delivery = subtotal >= 399 ? 0 : 49.00;
-  const tax = subtotal * 0.08;
+  const freeShippingThreshold = settings.freeShippingMin !== undefined ? settings.freeShippingMin : 399;
+  const deliveryFee = settings.deliveryFee !== undefined ? settings.deliveryFee : 49.00;
+  const taxRate = settings.taxRate !== undefined ? settings.taxRate / 100 : 0.08;
+  const delivery = subtotal >= freeShippingThreshold ? 0 : deliveryFee;
+  const tax = subtotal * taxRate;
   const finalTotal = subtotal - discount + delivery + tax;
 
   const newOrder = {
@@ -1502,4 +1532,57 @@ function setupUserMenuEvents() {
       if (shipEmailInput) shipEmailInput.value = '';
     });
   }
+}
+
+// Render dynamic announcement top banner
+function renderAnnouncementBanner() {
+  const bar = document.getElementById('announcement-bar');
+  if (!bar) return;
+
+  const isClosed = sessionStorage.getItem('ms-banner-closed');
+  const header = document.querySelector('.header');
+
+  if (isClosed === 'true' || !settings.bannerActive) {
+    bar.style.display = 'none';
+    if (header) {
+      header.style.top = '0';
+    }
+    return;
+  }
+
+  bar.style.display = 'flex';
+  bar.style.justifyContent = 'center';
+  bar.style.alignItems = 'center';
+  bar.style.position = 'fixed';
+  bar.style.top = '0';
+  bar.style.left = '0';
+  bar.style.width = '100%';
+  bar.style.height = '36px';
+  bar.style.padding = '0 1rem';
+  bar.style.fontSize = '0.85rem';
+  bar.style.fontWeight = '700';
+  bar.style.textAlign = 'center';
+  bar.style.backgroundColor = settings.bannerBgColor || '#10b981';
+  bar.style.color = settings.bannerTextColor || '#ffffff';
+  bar.style.zIndex = '1001';
+  bar.style.letterSpacing = '0.03em';
+  bar.style.boxShadow = '0 2px 4px rgba(0,0,0,0.1)';
+
+  bar.innerHTML = `
+    <div style="flex: 1; padding-right: 2rem;">${settings.bannerText}</div>
+    <button id="close-banner-btn" style="position: absolute; right: 1.2rem; background: none; border: 0; color: inherit; font-size: 1.3rem; cursor: pointer; font-weight: 700; line-height: 1; display: flex; align-items: center; justify-content: center; padding: 4px;" aria-label="Close Announcement">×</button>
+  `;
+
+  if (header) {
+    header.style.top = '36px';
+    header.style.transition = 'top var(--transition-normal)';
+  }
+
+  document.getElementById('close-banner-btn').addEventListener('click', () => {
+    bar.style.display = 'none';
+    sessionStorage.setItem('ms-banner-closed', 'true');
+    if (header) {
+      header.style.top = '0';
+    }
+  });
 }

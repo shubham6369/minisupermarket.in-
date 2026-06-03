@@ -96,6 +96,13 @@
           <svg class="nav-icon" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24" style="width: 20px; height: 20px;"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
           Customers Directory
         </button>
+        <button class="nav-item" data-view="settings">
+          <svg class="nav-icon" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24" style="width: 20px; height: 20px;">
+            <circle cx="12" cy="12" r="3"></circle>
+            <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+          </svg>
+          Store Settings
+        </button>
       </nav>
 
       <div class="sidebar-footer">
@@ -342,6 +349,78 @@
           </div>
         </section>
 
+        <!-- SECTION 6: Store Settings -->
+        <section class="panel-section" id="section-settings">
+          <div class="card settings-card-full">
+            <h2 class="section-title" style="margin-bottom: 0.5rem;">Global Store Configuration</h2>
+            <p class="section-subtitle" style="color: var(--text-secondary); margin-bottom: 1.5rem; font-size: 0.95rem;">Manage delivery thresholds, taxes, storefront announcement banners, and shipping parameters</p>
+            <hr class="settings-divider" style="border: 0; border-top: 1px solid var(--border-color); margin-bottom: 1.5rem;">
+            
+            <form id="settings-form" class="settings-grid-form">
+              <!-- General Settings -->
+              <div class="settings-sub-section" style="margin-bottom: 2rem;">
+                <h3 style="font-size: 1.1rem; font-weight: 600; margin-bottom: 1rem; color: var(--primary);">Pricing & Delivery Policies</h3>
+                <div class="form-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 1rem;">
+                  <div class="form-group">
+                    <label class="form-label" for="settings-free-shipping-min">Free Shipping Minimum Threshold (₹)</label>
+                    <input type="number" class="form-input" id="settings-free-shipping-min" min="0" step="1" required>
+                    <small class="form-help" style="display: block; margin-top: 0.25rem; color: var(--text-secondary); font-size: 0.8rem;">Orders above or equal to this amount qualify for free delivery.</small>
+                  </div>
+                  <div class="form-group">
+                    <label class="form-label" for="settings-delivery-fee">Standard Delivery Fee (₹)</label>
+                    <input type="number" class="form-input" id="settings-delivery-fee" min="0" step="1" required>
+                    <small class="form-help" style="display: block; margin-top: 0.25rem; color: var(--text-secondary); font-size: 0.8rem;">Charged for orders below the free shipping threshold.</small>
+                  </div>
+                  <div class="form-group">
+                    <label class="form-label" for="settings-tax-rate">GST Tax Rate (%)</label>
+                    <input type="number" class="form-input" id="settings-tax-rate" min="0" max="100" step="0.1" required>
+                    <small class="form-help" style="display: block; margin-top: 0.25rem; color: var(--text-secondary); font-size: 0.8rem;">Applied to the subtotal during checkout calculation.</small>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Announcement Banner Settings -->
+              <div class="settings-sub-section" style="margin-bottom: 2rem; border-top: 1px solid var(--border-color); padding-top: 1.5rem;">
+                <h3 style="font-size: 1.1rem; font-weight: 600; margin-bottom: 1rem; color: var(--primary);">Storefront Announcement Banner</h3>
+                
+                <div class="form-group checkbox-group" style="display: flex; align-items: center; gap: 0.75rem; margin-bottom: 1.25rem;">
+                  <label class="switch-container" style="position: relative; display: inline-block; width: 44px; height: 22px;">
+                    <input type="checkbox" id="settings-banner-active" style="opacity: 0; width: 0; height: 0;">
+                    <span class="slider round" style="position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: var(--border-color); transition: .3s; border-radius: 22px;"></span>
+                  </label>
+                  <label for="settings-banner-active" class="checkbox-label" style="font-weight: 600; cursor: pointer; color: var(--text-primary);">Enable Top Banner announcement bar on storefront</label>
+                </div>
+                
+                <div class="form-grid" id="settings-banner-fields" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 1rem;">
+                  <div class="form-group full" style="grid-column: 1 / -1;">
+                    <label class="form-label" for="settings-banner-text">Banner Announcement Text</label>
+                    <input type="text" class="form-input" id="settings-banner-text" placeholder="⚡ Flat ₹100 Off on your first order! Use code TASTY100">
+                  </div>
+                  <div class="form-group">
+                    <label class="form-label" for="settings-banner-bg-color">Banner Background Color</label>
+                    <div class="color-picker-wrap" style="display: flex; gap: 0.5rem; align-items: center;">
+                      <input type="color" id="settings-banner-bg-color" class="form-color-picker" style="border: 0; width: 40px; height: 40px; border-radius: 4px; cursor: pointer; padding: 0; background: none;">
+                      <input type="text" id="settings-banner-bg-text" class="form-input" placeholder="#2ecc71" style="flex: 1;">
+                    </div>
+                  </div>
+                  <div class="form-group">
+                    <label class="form-label" for="settings-banner-text-color">Banner Text Color</label>
+                    <div class="color-picker-wrap" style="display: flex; gap: 0.5rem; align-items: center;">
+                      <input type="color" id="settings-banner-text-color" class="form-color-picker" style="border: 0; width: 40px; height: 40px; border-radius: 4px; cursor: pointer; padding: 0; background: none;">
+                      <input type="text" id="settings-banner-text-text" class="form-input" placeholder="#ffffff" style="flex: 1;">
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Action buttons -->
+              <div class="settings-actions" style="border-top: 1px solid var(--border-color); padding-top: 1.5rem; display: flex; justify-content: flex-end;">
+                <button type="submit" class="btn btn-primary" id="settings-save-btn">Save Configuration</button>
+              </div>
+            </form>
+          </div>
+        </section>
+
       </div>
     </main>
   </div>
@@ -395,6 +474,11 @@
           <div class="form-group">
             <label class="form-label" for="form-stock">Stock Quantity</label>
             <input type="number" class="form-input" id="form-stock" min="0" placeholder="100" required>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="form-badge">Product Badge / Tag</label>
+            <input type="text" class="form-input" id="form-badge" placeholder="e.g. Organic, Fresh, Bestseller">
           </div>
 
           <div class="form-group full">
