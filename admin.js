@@ -1,5 +1,5 @@
 /* ==========================================================================
-   FreshKart Seller Hub Controller
+   minisupermarket Seller Hub Controller
    ========================================================================== */
 
 // Fallback Default Products database matching app.js
@@ -181,12 +181,12 @@ let orders = [];
 function loadData() {
   // Load Products
   try {
-    const savedProducts = localStorage.getItem('fk-products');
+    const savedProducts = localStorage.getItem('ms-products');
     if (savedProducts) {
       products = JSON.parse(savedProducts);
     } else {
       products = defaultProducts;
-      localStorage.setItem('fk-products', JSON.stringify(defaultProducts));
+      localStorage.setItem('ms-products', JSON.stringify(defaultProducts));
     }
     // Initialize stock key on default products if missing
     products.forEach(p => {
@@ -195,7 +195,7 @@ function loadData() {
         p.stock = Math.floor(Math.random() * 72) + 8;
       }
     });
-    localStorage.setItem('fk-products', JSON.stringify(products));
+    localStorage.setItem('ms-products', JSON.stringify(products));
   } catch (e) {
     console.warn("Storage error reading products", e);
     products = defaultProducts;
@@ -203,7 +203,7 @@ function loadData() {
 
   // Load Orders
   try {
-    const savedOrders = localStorage.getItem('fk-orders');
+    const savedOrders = localStorage.getItem('ms-orders');
     orders = savedOrders ? JSON.parse(savedOrders) : [];
   } catch (e) {
     console.warn("Storage error reading orders", e);
@@ -214,7 +214,7 @@ function loadData() {
 // Write helper functions
 function saveProducts() {
   try {
-    localStorage.setItem('fk-products', JSON.stringify(products));
+    localStorage.setItem('ms-products', JSON.stringify(products));
   } catch (e) {
     console.warn("Storage write error for products", e);
   }
@@ -222,7 +222,7 @@ function saveProducts() {
 
 function saveOrders() {
   try {
-    localStorage.setItem('fk-orders', JSON.stringify(orders));
+    localStorage.setItem('ms-orders', JSON.stringify(orders));
   } catch (e) {
     console.warn("Storage write error for orders", e);
   }
@@ -334,7 +334,7 @@ function setupDashboardQuickLinks() {
 function initTheme() {
   let storedTheme = 'dark'; // Admin panel defaults to sleek dark mode
   try {
-    storedTheme = localStorage.getItem('fk-admin-theme') || 'dark';
+    storedTheme = localStorage.getItem('ms-admin-theme') || 'dark';
   } catch (e) {
     console.warn("localStorage read error", e);
   }
@@ -353,7 +353,7 @@ themeToggle.addEventListener('click', () => {
   const nextTheme = currentTheme === 'dark' ? 'light' : 'dark';
   document.documentElement.setAttribute('data-theme', nextTheme);
   try {
-    localStorage.setItem('fk-admin-theme', nextTheme);
+    localStorage.setItem('ms-admin-theme', nextTheme);
   } catch (e) {
     console.warn("localStorage write error", e);
   }

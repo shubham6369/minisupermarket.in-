@@ -1,5 +1,5 @@
 /* ==========================================================================
-   FreshKart Application Logic
+   minisupermarket Application Logic
    ========================================================================== */
 
 // 1. Mock Database of Premium Products (Default Fallback)
@@ -176,19 +176,19 @@ const defaultProducts = [
 
 let products = [];
 try {
-  const savedProducts = localStorage.getItem('fk-products');
+  const savedProducts = localStorage.getItem('ms-products');
   if (savedProducts) {
     products = JSON.parse(savedProducts);
   } else {
     products = defaultProducts;
-    localStorage.setItem('fk-products', JSON.stringify(defaultProducts));
+    localStorage.setItem('ms-products', JSON.stringify(defaultProducts));
   }
   if (!Array.isArray(products) || products.length === 0) {
     products = defaultProducts;
-    localStorage.setItem('fk-products', JSON.stringify(defaultProducts));
+    localStorage.setItem('ms-products', JSON.stringify(defaultProducts));
   }
 } catch (e) {
-  console.warn("localStorage 'fk-products' read error, using defaultProducts fallback.", e);
+  console.warn("localStorage 'ms-products' read error, using defaultProducts fallback.", e);
   products = defaultProducts;
 }
 
@@ -201,27 +201,27 @@ let activePromoCode = null;
 let deliveryStatusTimer = null;
 
 try {
-  const savedCart = localStorage.getItem('fk-cart');
+  const savedCart = localStorage.getItem('ms-cart');
   cart = savedCart ? JSON.parse(savedCart) : [];
   if (!Array.isArray(cart)) cart = [];
 } catch (e) {
-  console.warn("localStorage 'fk-cart' read error, defaulting to empty.", e);
+  console.warn("localStorage 'ms-cart' read error, defaulting to empty.", e);
   cart = [];
 }
 
 try {
-  const savedWishlist = localStorage.getItem('fk-wishlist');
+  const savedWishlist = localStorage.getItem('ms-wishlist');
   wishlist = savedWishlist ? JSON.parse(savedWishlist) : [];
   if (!Array.isArray(wishlist)) wishlist = [];
 } catch (e) {
-  console.warn("localStorage 'fk-wishlist' read error, defaulting to empty.", e);
+  console.warn("localStorage 'ms-wishlist' read error, defaulting to empty.", e);
   wishlist = [];
 }
 
 try {
-  activePromoCode = localStorage.getItem('fk-promo') || null;
+  activePromoCode = localStorage.getItem('ms-promo') || null;
 } catch (e) {
-  console.warn("localStorage 'fk-promo' read error, defaulting to null.", e);
+  console.warn("localStorage 'ms-promo' read error, defaulting to null.", e);
   activePromoCode = null;
 }
 
@@ -306,9 +306,9 @@ document.addEventListener('DOMContentLoaded', () => {
 function initTheme() {
   let storedTheme = 'light';
   try {
-    storedTheme = localStorage.getItem('fk-theme') || 'light';
+    storedTheme = localStorage.getItem('ms-theme') || 'light';
   } catch (e) {
-    console.warn("localStorage 'fk-theme' read error.", e);
+    console.warn("localStorage 'ms-theme' read error.", e);
   }
   document.documentElement.setAttribute('data-theme', storedTheme);
   updateThemeIcon(storedTheme);
@@ -325,9 +325,9 @@ themeToggle.addEventListener('click', () => {
   const nextTheme = currentTheme === 'dark' ? 'light' : 'dark';
   document.documentElement.setAttribute('data-theme', nextTheme);
   try {
-    localStorage.setItem('fk-theme', nextTheme);
+    localStorage.setItem('ms-theme', nextTheme);
   } catch (e) {
-    console.warn("localStorage 'fk-theme' write error.", e);
+    console.warn("localStorage 'ms-theme' write error.", e);
   }
   updateThemeIcon(nextTheme);
   showToast(`Switched to ${nextTheme} mode`, 'success');
@@ -567,17 +567,17 @@ function toggleWishlist(productId, heartButton) {
 
 function saveCart() {
   try {
-    localStorage.setItem('fk-cart', JSON.stringify(cart));
+    localStorage.setItem('ms-cart', JSON.stringify(cart));
   } catch (e) {
-    console.warn("localStorage 'fk-cart' write error.", e);
+    console.warn("localStorage 'ms-cart' write error.", e);
   }
 }
 
 function saveWishlist() {
   try {
-    localStorage.setItem('fk-wishlist', JSON.stringify(wishlist));
+    localStorage.setItem('ms-wishlist', JSON.stringify(wishlist));
   } catch (e) {
-    console.warn("localStorage 'fk-wishlist' write error.", e);
+    console.warn("localStorage 'ms-wishlist' write error.", e);
   }
 }
 
@@ -685,7 +685,7 @@ function calculateCartTotals() {
   
   // Promo code
   let discount = 0;
-  if (activePromoCode === 'FRESH10') {
+  if (activePromoCode === 'MINI10') {
     discount = subtotal * 0.10;
     summaryDiscountRow.style.display = 'flex';
     summaryDiscount.innerText = `-₹${discount.toFixed(2)}`;
@@ -787,20 +787,20 @@ window.removeWishlistItem = function(productId) {
   showToast(`Removed ${product.title} from favorites`, 'warning');
 };
 
-// Apply promo code FRESH10
+// Apply promo code MINI10
 promoApply.addEventListener('click', () => {
   const code = promoInput.value.trim().toUpperCase();
-  if (code === 'FRESH10') {
-    activePromoCode = 'FRESH10';
+  if (code === 'MINI10') {
+    activePromoCode = 'MINI10';
     try {
-      localStorage.setItem('fk-promo', 'FRESH10');
+      localStorage.setItem('ms-promo', 'MINI10');
     } catch (e) {
-      console.warn("localStorage 'fk-promo' write error.", e);
+      console.warn("localStorage 'ms-promo' write error.", e);
     }
     showToast('Promo code applied successfully (10% Off)!', 'success');
     calculateCartTotals();
   } else {
-    showToast('Invalid promo code. Try FRESH10', 'danger');
+    showToast('Invalid promo code. Try MINI10', 'danger');
   }
 });
 
@@ -983,7 +983,7 @@ document.getElementById('checkout-panel-2').addEventListener('submit', (e) => {
   e.preventDefault();
   
   // Create and save new order in database (localStorage)
-  const orderId = 'FK-' + Math.floor(100000 + Math.random() * 900000);
+  const orderId = 'MS-' + Math.floor(100000 + Math.random() * 900000);
   const shipName = document.getElementById('ship-name').value;
   const shipPhone = document.getElementById('ship-phone').value;
   const shipEmail = document.getElementById('ship-email').value;
@@ -993,7 +993,7 @@ document.getElementById('checkout-panel-2').addEventListener('submit', (e) => {
   
   const subtotal = cart.reduce((sum, item) => sum + (item.product.price * item.quantity), 0);
   let discount = 0;
-  if (activePromoCode === 'FRESH10') discount = subtotal * 0.10;
+  if (activePromoCode === 'MINI10') discount = subtotal * 0.10;
   const delivery = subtotal >= 399 ? 0 : 49.00;
   const tax = subtotal * 0.08;
   const finalTotal = subtotal - discount + delivery + tax;
@@ -1018,9 +1018,9 @@ document.getElementById('checkout-panel-2').addEventListener('submit', (e) => {
   };
 
   try {
-    const existingOrders = JSON.parse(localStorage.getItem('fk-orders')) || [];
+    const existingOrders = JSON.parse(localStorage.getItem('ms-orders')) || [];
     existingOrders.push(newOrder);
-    localStorage.setItem('fk-orders', JSON.stringify(existingOrders));
+    localStorage.setItem('ms-orders', JSON.stringify(existingOrders));
   } catch (err) {
     console.warn("Failed to save order to localStorage", err);
   }
@@ -1087,7 +1087,7 @@ function startDeliveryTracker(orderId) {
   // Poll localStorage every 2 seconds for status updates from Admin Panel
   deliveryStatusTimer = setInterval(() => {
     try {
-      const orders = JSON.parse(localStorage.getItem('fk-orders')) || [];
+      const orders = JSON.parse(localStorage.getItem('ms-orders')) || [];
       const currentOrder = orders.find(o => o.id === orderId);
       if (currentOrder) {
         updateTrackerUI(currentOrder.status);
